@@ -1,24 +1,15 @@
-// Note that a dynamic `import` statement here is required due to
-// webpack/webpack#6615, but in theory `import { greet } from './pkg';`
-// will work here one day as well!
-// const rust = import('./pkg');
-// rust
-//   .then(m => m.greet('World!'))
-//   .catch(console.error);
-
-
 import { ApiPromise, WsProvider } from '@polkadot/api';
 import { web3Accounts, web3Enable, web3FromSource } from '@polkadot/extension-dapp';
-import { base58Decode, base58Encode } from '@polkadot/util-crypto';
+import { base58Encode } from '@polkadot/util-crypto';
 import Api, { ApiConfig } from 'manta-wasm-wallet-api';
 import * as axios from 'axios';
-import types from './types.json';
 import config from './config.json';
 
 async function main() {
     // Polkadot.js API
     const provider = new WsProvider(config.BLOCKCHAIN_URL);
     const rpc = config.RPC;
+    const types = config.TYPES;
     const api = await ApiPromise.create({ provider, types, rpc });
     const [chain, nodeName, nodeVersion] = await Promise.all([
         api.rpc.system.chain(),
