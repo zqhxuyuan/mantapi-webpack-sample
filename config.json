@@ -1,0 +1,29 @@
+{
+    "APP_NAME": "manta-web-app",
+    "VERSION": "2.3.0",
+    "MIN_REQUIRED_SIGNER_VERSION": "0.7.0",
+    "SIGNER_URL": "http://localhost:29987/",
+    "BLOCKCHAIN_URL": "wss://ws.rococo.dolphin.engineering",
+    "DEFAULT_PULL_SIZE": 4096,
+    "RPC": {
+        "mantaPay": {
+            "pull_ledger_diff": {
+                "description": "pull from mantaPay",
+                "params": [{
+                        "name": "checkpoint",
+                        "type": "Checkpoint"
+                    },
+                    {
+                        "name": "max_receiver",
+                        "type": "u64"
+                    },
+                    {
+                        "name": "max_sender",
+                        "type": "u64"
+                    }
+                ],
+                "type": "PullResponse"
+            }
+        }
+    }
+}
