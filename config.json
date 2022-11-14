@@ -4,6 +4,7 @@
     "MIN_REQUIRED_SIGNER_VERSION": "0.7.0",
     "SIGNER_URL": "http://localhost:29987/",
     "BLOCKCHAIN_URL": "wss://ws.rococo.dolphin.engineering",
+    "BLOCKCHAIN_URL_LOCAL": "ws://127.0.0.1:9944",
     "DEFAULT_PULL_SIZE": 4096,
     "RPC": {
         "mantaPay": {
