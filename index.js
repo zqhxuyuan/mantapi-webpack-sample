@@ -3,7 +3,7 @@ import * as sdk from './sdk';
 const amount_threshold = 50000000000000000000;
 const ft_asset_id = 1;
 // collection_id: 4369(0x1111), item_id: 1(0x0001), asset_id: 0x11110001=286326785
-const nft_asset_id = 286326786;
+const nft_asset_id = 286326785;
 const to_private_address = "3NfF4tBBmHjzFXUVwo4WPzjGRCjYtx73D237MSk5hatghxKLSMNc2UJKywtbHSp58CEWrPvDFkAQRYabo53zfk6w";
 
 async function main() {
@@ -14,41 +14,32 @@ async function main() {
 
 main()
 
+// create collection & mint item on polkadot.js or through api?
 async function nft_transfer() {
   // init api and wallet sdk
   const { api, signer } = await sdk.init_api();
   const { wasm, wasmWallet } = await sdk.init_wasm_sdk(api, signer);
 
-  // Get private address
   await sdk.getPrivateAddress(wasm, wasmWallet);
-
-  // Get signer version
   await sdk.get_signer_version();
-
-  // Initial sync
   await sdk.init_sync(wasmWallet);
 
-  // create collection
-  // mint item with collection_id
-
-  // asset_id: collection_id + item_id
-  // to_private(asset_id)
-  // private_transfer(asset_id)
-  // to_public(asset_id)
-
-  await sdk.to_private(wasm, wasmWallet, nft_asset_id, 1);
-
+  const balance = sdk.print_private_balance(wasm, wasmWallet, nft_asset_id, "After init sync");
+  if (balance == 0) {
+    await sdk.to_private_nft(wasm, wasmWallet, nft_asset_id);
+  } else {
+    await sdk.private_transfer_nft(api, signer, wasm, wasmWallet, nft_asset_id, to_private_address);
+  }
+  
   setTimeout(function () { }, 1000);
   sdk.print_private_balance(wasm, wasmWallet, nft_asset_id, "After transfer");
 
-  // Sync after transfer
   await wasmWallet.sync();
   sdk.print_private_balance(wasm, wasmWallet, nft_asset_id, "Sync1 after transfer");
 
   setTimeout(function () { }, 1000);
   await wasmWallet.sync();
   sdk.print_private_balance(wasm, wasmWallet, nft_asset_id, "Sync2 After transfer");
-
 }
 
 // manta_pay to_private(DOL) and private_transfer(pDOL)

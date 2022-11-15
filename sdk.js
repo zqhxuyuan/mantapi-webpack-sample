@@ -14,6 +14,7 @@ const DEFAULT_PULL_SIZE = config.DEFAULT_PULL_SIZE;
 const SIGNER_URL = config.SIGNER_URL;
 const CHAIN_URL = config.BLOCKCHAIN_URL_LOCAL;
 const PRIVATE_ASSET_PREFIX = "p"
+const NFT_AMOUNT = 1000000000000;
 
 // TODO: url, account as parameters
 export async function init_api() {
@@ -125,6 +126,18 @@ export async function to_private(wasm, wasmWallet, asset_id, to_private_amount) 
     }
 }
 
+export async function to_private_nft(wasm, wasmWallet, asset_id) {
+    console.log("to_private NFT transaction...");
+    const txJson = `{ "Mint": { "id": ${asset_id}, "value": "${NFT_AMOUNT}" }}`;
+    const transaction = wasm.Transaction.from_string(txJson);
+    try {
+        const res = await wasmWallet.post(transaction, null);
+        console.log("📜to_private result:" + res);
+    } catch (error) {
+        console.error('Transaction failed', error);
+    }
+}
+
 export async function private_transfer(api, signer, wasm, wasmWallet, asset_id, private_transfer_amount, to_private_address) {
     console.log("private_transfer transaction...");
     const addressJson = privateAddressToJson(to_private_address);
@@ -140,6 +153,34 @@ export async function private_transfer(api, signer, wasm, wasmWallet, asset_id, 
     const assetMetadataJson = `{ "decimals": ${decimals}, "symbol": "${PRIVATE_ASSET_PREFIX}${symbol}" }`;
     console.log("📜asset metadata:" + assetMetadataJson);
 
+    const assetMetadata = wasm.AssetMetadata.from_string(assetMetadataJson);
+    const posts = await wasmWallet.sign(transaction, assetMetadata);
+    const transactions = [];
+    for (let i = 0; i < posts.length; i++) {
+        const transaction = await mapPostToTransaction(posts[i], api);
+        transactions.push(transaction);
+    }
+    const private_tx_res = await transactionsToBatches(transactions, api);
+    for (let i = 0; i < private_tx_res.length; i++) {
+        try {
+            await private_tx_res[i].signAndSend(signer, (status, events) => { });
+        } catch (error) {
+            console.error('Transaction failed', error);
+        }
+    }
+    console.log("📜finish private transfer 1 pDOL.");
+}
+
+export async function private_transfer_nft(api, signer, wasm, wasmWallet, asset_id, to_private_address) {
+    console.log("private_transfer NFT transaction...");
+    const addressJson = privateAddressToJson(to_private_address);
+    const txJson = `{ "PrivateTransfer": [{ "id": ${asset_id}, "value": "${NFT_AMOUNT}" }, ${addressJson} ]}`;
+    const transaction = wasm.Transaction.from_string(txJson);
+
+    // TODO: symbol query from chain storage.
+    // Can we passing `None` as assetMetadata, because parameter type of 
+    // `sign(tx, metadata: Option<AssetMetadata>)` on manta-sdk/wallet?
+    const assetMetadataJson = `{ "decimals": 12, "symbol": "pNFT" }`;
     const assetMetadata = wasm.AssetMetadata.from_string(assetMetadataJson);
     const posts = await wasmWallet.sign(transaction, assetMetadata);
     const transactions = [];
@@ -200,6 +241,6 @@ export async function transactionsToBatches(transactions, api) {
 
 export function print_private_balance(wasm, wasmWallet, asset_id, info) {
     const balance = wasmWallet.balance(new wasm.AssetId(asset_id));
-    console.log(`private asset balance[${info}]:` + balance);
+    console.log(`💰private asset ${asset_id} balance[${info}]:` + balance);
     return balance;
 }
