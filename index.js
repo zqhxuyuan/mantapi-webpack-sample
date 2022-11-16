@@ -3,8 +3,8 @@ import * as sdk from './sdk';
 const amount_threshold = 50000000000000000000;
 const ft_asset_id = 1;
 // collection_id: 4369(0x1111), item_id: 1(0x0001), asset_id: 0x11110001=286326785
-const nft_asset_id = 286326785;
-const to_private_address = "3NfF4tBBmHjzFXUVwo4WPzjGRCjYtx73D237MSk5hatghxKLSMNc2UJKywtbHSp58CEWrPvDFkAQRYabo53zfk6w";
+const nft_asset_id = 286326786;
+const to_private_address = "F44YYdaTqZgBQfnzMBwSSDmUwuaGyNsv3imbPck8hsK5XuofmGEEnNzxGwkU9QJ44jBUWueXkaSdaFc2JBmNFMW";
 
 async function main() {
   // await fungible_asset_transfer();
@@ -29,6 +29,7 @@ async function nft_transfer() {
     await sdk.to_private_nft(wasm, wasmWallet, nft_asset_id);
   } else {
     await sdk.private_transfer_nft(api, signer, wasm, wasmWallet, nft_asset_id, to_private_address);
+    // await sdk.to_public_nft(api, signer, wasm, wasmWallet, nft_asset_id);
   }
   
   setTimeout(function () { }, 1000);
