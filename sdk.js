@@ -34,17 +34,31 @@ export async function init_api() {
     }
     const allAccounts = await web3Accounts();
     const account = allAccounts[0];
+    // console.log(JSON.stringify(account));
     const injector = await web3FromSource(account.meta.source);
     const signer = account.address;
     console.log("address:" + account.address);
-    console.log("signer:" + injector.signer);
+    // console.log("signer:" + injector.signer);
     api.setSigner(injector.signer)
     const { nonce, data: balance } = await api.query.system.account(signer);
-    console.log("balance:" + balance + ", nonce:" + nonce);
+    // console.log("balance:" + balance + ", nonce:" + nonce);
     return {
         api,
         signer
     };
+}
+
+export async function init_api_config(chain_url) {
+    // Polkadot.js API
+    const provider = new WsProvider(chain_url);
+    const api = await ApiPromise.create({ provider, types, rpc });
+    const [chain, nodeName, nodeVersion] = await Promise.all([
+        api.rpc.system.chain(),
+        api.rpc.system.name(),
+        api.rpc.system.version()
+    ]);
+    console.log(`You are connected to chain ${chain} using ${nodeName} v${nodeVersion}`);
+    return api;
 }
 
 export async function init_wasm_sdk(api, signer) {
@@ -139,17 +153,19 @@ export async function to_private_nft(wasm, wasmWallet, asset_id) {
 }
 
 export async function private_transfer(api, signer, wasm, wasmWallet, asset_id, private_transfer_amount, to_private_address) {
-    console.log("private_transfer transaction...");
+    console.log("private_transfer transaction of asset_id:" + asset_id);
     const addressJson = privateAddressToJson(to_private_address);
     const txJson = `{ "PrivateTransfer": [{ "id": ${asset_id}, "value": "${private_transfer_amount}" }, ${addressJson} ]}`;
     const transaction = wasm.Transaction.from_string(txJson);
 
     // construct asset metadata json by query api
     const asset_meta = await api.query.assetManager.assetIdMetadata(asset_id);
+    // console.log(asset_meta.toHuman());
     const json = JSON.stringify(asset_meta.toHuman());
     const jsonObj = JSON.parse(json);
-    const decimals = jsonObj["decimals"];
-    const symbol = jsonObj["symbol"];
+    console.log("asset metadata:" + json);
+    const decimals = jsonObj["metadata"]["decimals"];
+    const symbol = jsonObj["metadata"]["symbol"];
     const assetMetadataJson = `{ "decimals": ${decimals}, "symbol": "${PRIVATE_ASSET_PREFIX}${symbol}" }`;
     console.log("📜asset metadata:" + assetMetadataJson);
 
